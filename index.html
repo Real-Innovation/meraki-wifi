@@ -1,64 +1,113 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guest WiFi Login</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #eee; text-align: center; }
-        .box { background: white; padding: 20px; border-radius: 10px; max-width: 300px; margin: auto; }
-        input { width: 90%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; }
-        button { width: 95%; padding: 10px; background: #1a73e8; color: white; border: none; cursor: pointer; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 360px; text-align: center; }
+        .logo { width: 120px; height: auto; margin-bottom: 20px; }
+        h2 { color: #1a73e8; margin-bottom: 10px; }
+        p.subtitle { color: #666; font-size: 14px; margin-bottom: 25px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        .terms-container { display: flex; align-items: flex-start; text-align: left; margin: 15px 0; font-size: 12px; color: #555; }
+        .terms-container input { width: 18px; height: 18px; margin-right: 10px; margin-top: 2px; cursor: pointer; }
+        button { width: 100%; padding: 12px; background-color: #ccc; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: not-allowed; transition: 0.3s; }
+        button.active { background-color: #1a73e8; cursor: pointer; }
+        .footer-note { margin-top: 20px; font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 15px; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h2>Free WiFi</h2>
-        <p>4 Hours Daily Access</p>
-        <form id="wifiForm">
-            <input type="text" id="fn" placeholder="First Name" required>
-            <input type="text" id="ln" placeholder="Last Name" required>
-            <input type="tel" id="ph" placeholder="Mobile Number" required>
-            <input type="email" id="em" placeholder="Email" required>
-            <button type="submit" id="btn">Connect</button>
-        </form>
+
+<div class="card">
+    <img src="BR-Image.jfif" alt="Logo" class="logo">
+    
+    <h2>Guest WiFi</h2>
+    <p class="subtitle">Enter details to enjoy 4 hours of access</p>
+
+    <form id="wifiForm">
+        <input type="text" id="firstName" placeholder="First Name" required>
+        <input type="text" id="lastName" placeholder="Last Name" required>
+        <input type="tel" id="mobile" placeholder="Mobile Number" required>
+        <input type="email" id="email" placeholder="Email Address" required>
+
+        <div class="terms-container">
+            <input type="checkbox" id="terms">
+            <label for="terms">I agree to the Terms of Service. I understand that internet access is limited to 4 hours per day.</label>
+        </div>
+
+        <button type="submit" id="submitBtn" disabled>CONNECT NOW</button>
+    </form>
+
+    <div class="footer-note">
+        Connection will automatically disconnect after 4 hours.
     </div>
+</div>
 
-    <script>
-        // Grab Meraki Data from URL
-        const params = new URLSearchParams(window.location.search);
-        const baseGrantUrl = params.get('base_grant_url');
-        const continueUrl = params.get('user_continue_url') || "https://google.com";
+<script>
+    // 1. Capture Meraki Parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const baseGrantUrl = urlParams.get('base_grant_url');
+    const userContinueUrl = urlParams.get('user_continue_url') || "https://www.google.com";
 
-        document.getElementById('wifiForm').onsubmit = function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn');
+    const termsCb = document.getElementById('terms');
+    const btn = document.getElementById('submitBtn');
+
+    // 2. Enable/Disable button based on checkbox
+    termsCb.addEventListener('change', function() {
+        if (this.checked) {
+            btn.disabled = false;
+            btn.classList.add('active');
+        } else {
             btn.disabled = true;
-            btn.innerText = "Checking...";
+            btn.classList.remove('active');
+        }
+    });
 
-            const payload = {
-                firstName: document.getElementById('fn').value,
-                lastName: document.getElementById('ln').value,
-                mobile: document.getElementById('ph').value,
-                email: document.getElementById('em').value
-            };
+    // 3. Handle Form Submission
+    document.getElementById('wifiForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        btn.innerText = "Verifying...";
+        btn.disabled = true;
 
-            fetch('https://script.google.com/macros/s/AKfycbyOW_NPPVVNMbZZXfRQ4gBYiUICrV2ihix2uDTyOq27Zud3haKKpODRJ82B9fPFRUp1/exec', {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.result === "success" && baseGrantUrl) {
-                    // REDIRECT TO MERAKI WITH 4 HOUR LIMIT (14400 SECONDS)
-                    window.location.href = `${baseGrantUrl}?continue_url=${encodeURIComponent(continueUrl)}&duration=14400`;
-                } else {
-                    alert(data.message || "Error: Meraki AP not detected.");
-                    btn.disabled = false;
-                    btn.innerText = "Connect";
-                }
-            })
-            .catch(() => alert("Network error. Please try again."));
+        const payload = {
+            firstName: document.getElementById('firstName').value,
+            lastName: document.getElementById('lastName').value,
+            mobile: document.getElementById('mobile').value,
+            email: document.getElementById('email').value
         };
-    </script>
+
+        // Replace with YOUR Google Web App URL
+        const googleApiUrl = 'https://script.google.com/macros/s/AKfycbyOW_NPPVVNMbZZXfRQ4gBYiUICrV2ihix2uDTyOq27Zud3haKKpODRJ82B9fPFRUp1/exec';
+
+        fetch(googleApiUrl, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.result === "success") {
+                if (baseGrantUrl) {
+                    // REDIRECT TO UNLOCK INTERNET (4 hours = 14400 seconds)
+                    window.location.href = `${baseGrantUrl}?continue_url=${encodeURIComponent(userContinueUrl)}&duration=14400`;
+                } else {
+                    alert("Data saved! (Meraki AP not detected)");
+                    btn.innerText = "CONNECTED";
+                }
+            } else {
+                alert(data.message);
+                btn.innerText = "CONNECT NOW";
+                btn.disabled = false;
+            }
+        })
+        .catch(err => {
+            alert("Connection error. Check Meraki Walled Garden settings.");
+            btn.disabled = false;
+            btn.innerText = "CONNECT NOW";
+        });
+    });
+</script>
+
 </body>
 </html>
