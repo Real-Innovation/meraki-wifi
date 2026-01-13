@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Guest WiFi Login</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #eee; text-align: center; }
+        .box { background: white; padding: 20px; border-radius: 10px; max-width: 300px; margin: auto; }
+        input { width: 90%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; }
+        button { width: 95%; padding: 10px; background: #1a73e8; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>Free WiFi</h2>
+        <p>4 Hours Daily Access</p>
+        <form id="wifiForm">
+            <input type="text" id="fn" placeholder="First Name" required>
+            <input type="text" id="ln" placeholder="Last Name" required>
+            <input type="tel" id="ph" placeholder="Mobile Number" required>
+            <input type="email" id="em" placeholder="Email" required>
+            <button type="submit" id="btn">Connect</button>
+        </form>
+    </div>
+
+    <script>
+        // Grab Meraki Data from URL
+        const params = new URLSearchParams(window.location.search);
+        const baseGrantUrl = params.get('base_grant_url');
+        const continueUrl = params.get('user_continue_url') || "https://google.com";
+
+        document.getElementById('wifiForm').onsubmit = function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn');
+            btn.disabled = true;
+            btn.innerText = "Checking...";
+
+            const payload = {
+                firstName: document.getElementById('fn').value,
+                lastName: document.getElementById('ln').value,
+                mobile: document.getElementById('ph').value,
+                email: document.getElementById('em').value
+            };
+
+            fetch('https://script.google.com/macros/s/AKfycbyOW_NPPVVNMbZZXfRQ4gBYiUICrV2ihix2uDTyOq27Zud3haKKpODRJ82B9fPFRUp1/exec', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.result === "success" && baseGrantUrl) {
+                    // REDIRECT TO MERAKI WITH 4 HOUR LIMIT (14400 SECONDS)
+                    window.location.href = `${baseGrantUrl}?continue_url=${encodeURIComponent(continueUrl)}&duration=14400`;
+                } else {
+                    alert(data.message || "Error: Meraki AP not detected.");
+                    btn.disabled = false;
+                    btn.innerText = "Connect";
+                }
+            })
+            .catch(() => alert("Network error. Please try again."));
+        };
+    </script>
+</body>
+</html>
