@@ -1,123 +1,96 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Guest WiFi Login</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 360px; text-align: center; }
-        .logo { width: 120px; height: auto; margin-bottom: 20px; }
-        h2 { color: #1a73e8; margin-bottom: 10px; }
-        p.subtitle { color: #666; font-size: 14px; margin-bottom: 25px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        .terms-container { display: flex; align-items: flex-start; text-align: left; margin: 15px 0; font-size: 12px; color: #555; }
-        .terms-container input { width: 18px; height: 18px; margin-right: 10px; margin-top: 2px; cursor: pointer; }
-        button { width: 100%; padding: 12px; background-color: #ccc; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: not-allowed; transition: 0.3s; }
-        button.active { background-color: #1a73e8; cursor: pointer; }
-        .footer-note { margin-top: 20px; font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 15px; }
+        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; display: flex; justify-content: center; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #ccc; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: not-allowed; margin-top: 10px; }
+        button.active { background: #1a73e8; cursor: pointer; }
+        .terms { font-size: 12px; text-align: left; margin: 15px 0; display: flex; }
+        .terms input { width: 20px; margin-right: 10px; height: 20px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <img src="BR-Image.jfif" alt="Logo" class="logo">
-    
-    <h2>Guest WiFi</h2>
-    <p class="subtitle">Enter details to enjoy 4 hours of access</p>
+    <img src="BR-Image.jfif" style="width: 120px; margin-bottom: 10px;">
+    <h2>Free WiFi</h2>
+    <p>4 Hours Daily Access</p>
 
     <form id="wifiForm">
-        <input type="text" id="firstName" placeholder="First Name" required>
-        <input type="text" id="lastName" placeholder="Last Name" required>
-        <input type="tel" id="mobile" placeholder="Mobile Number" required>
-        <input type="email" id="email" placeholder="Email Address" required>
+        <input type="text" id="fn" placeholder="First Name" required>
+        <input type="text" id="ln" placeholder="Last Name" required>
+        <input type="tel" id="ph" placeholder="Mobile Number" required>
+        <input type="email" id="em" placeholder="Email Address" required>
 
-       <div class="terms-container">
-    <input type="checkbox" id="terms">
-    <label for="terms" style="color: #555;">
-        I agree to the <a href="terms.html" style="color: #1a73e8; text-decoration: underline;">Terms & Conditions</a> 
-        and understand that access is limited to 4 hours per day.
-    </label>
-</div>
+        <div class="terms">
+            <input type="checkbox" id="termsBox">
+            <label for="termsBox">I agree to the <a href="terms.html">Terms & Conditions</a></label>
+        </div>
 
-        <button type="submit" id="submitBtn" disabled>CONNECT NOW</button>
+        <button type="submit" id="submitBtn" disabled>CONNECT</button>
     </form>
-
-    <div class="footer-note">
-        Connection will automatically disconnect after 4 hours.
-    </div>
 </div>
 
 <script>
-    // 1. Capture Meraki Parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const baseGrantUrl = urlParams.get('base_grant_url');
-    const userContinueUrl = urlParams.get('user_continue_url') || "https://www.google.com";
+    // 1. Get Meraki Auth Details
+    const params = new URLSearchParams(window.location.search);
+    const baseGrantUrl = params.get('base_grant_url');
+    const userContinueUrl = params.get('user_continue_url') || "https://www.google.com";
 
-const termsCb = document.getElementById('terms');
-const submitBtn = document.getElementById('submitBtn');
+    const termsBox = document.getElementById('termsBox');
+    const submitBtn = document.getElementById('submitBtn');
 
-// This function checks the checkbox and changes the button color
-function validateForm() {
-    if (termsCb.checked) {
-        submitBtn.disabled = false;
-        submitBtn.style.backgroundColor = "#1a73e8"; // Blue
-        submitBtn.classList.add('active');
-    } else {
-        submitBtn.disabled = true;
-        submitBtn.style.backgroundColor = "#ccc"; // Grey
-        submitBtn.classList.remove('active');
+    // 2. Button Activation Logic
+    function checkState() {
+        if (termsBox.checked) {
+            submitBtn.disabled = false;
+            submitBtn.classList.add('active');
+        } else {
+            submitBtn.disabled = true;
+            submitBtn.classList.remove('active');
+        }
     }
-}
+    termsBox.addEventListener('change', checkState);
+    window.addEventListener('load', checkState);
 
-// Condition 1: Check when user clicks the box
-termsCb.addEventListener('change', validateForm);
-
-// Condition 2: Check when user comes BACK from the Terms page
-window.addEventListener('load', validateForm);
-
-    // 3. Handle Form Submission
-    document.getElementById('wifiForm').addEventListener('submit', function(e) {
+    // 3. Form Submit & Internet Grant
+    document.getElementById('wifiForm').onsubmit = function(e) {
         e.preventDefault();
-        btn.innerText = "Verifying...";
-        btn.disabled = true;
+        submitBtn.innerText = "Connecting...";
+        submitBtn.disabled = true;
 
         const payload = {
-            firstName: document.getElementById('firstName').value,
-            lastName: document.getElementById('lastName').value,
-            mobile: document.getElementById('mobile').value,
-            email: document.getElementById('email').value
+            firstName: document.getElementById('fn').value,
+            lastName: document.getElementById('ln').value,
+            mobile: document.getElementById('ph').value,
+            email: document.getElementById('em').value
         };
 
-        // Replace with YOUR Google Web App URL
-        const googleApiUrl = 'https://script.google.com/macros/s/AKfycbyOW_NPPVVNMbZZXfRQ4gBYiUICrV2ihix2uDTyOq27Zud3haKKpODRJ82B9fPFRUp1/exec';
+        // REPLACE THIS URL WITH YOUR GOOGLE DEPLOYMENT URL
+        const googleUrl = 'https://script.google.com/macros/s/AKfycbyYmP0XGWzU5I06-ZIjQZIxKHeE_Cd4A6iXUhPmfjyMQFl3PIFZWGS7AzSZC50WZ1si/exec';
 
-        fetch(googleApiUrl, {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        })
+        fetch(googleUrl, { method: 'POST', body: JSON.stringify(payload) })
         .then(res => res.json())
         .then(data => {
-            if (data.result === "success") {
-                if (baseGrantUrl) {
-                    // REDIRECT TO UNLOCK INTERNET (4 hours = 14400 seconds)
-                    window.location.href = `${baseGrantUrl}?continue_url=${encodeURIComponent(userContinueUrl)}&duration=14400`;
-                } else {
-                    alert("Data saved! (Meraki AP not detected)");
-                    btn.innerText = "CONNECTED";
-                }
+            if (data.result === "success" && baseGrantUrl) {
+                // THE HANDSHAKE: This unlocks the internet for 4 hours
+                window.location.href = baseGrantUrl + "?continue_url=" + encodeURIComponent(userContinueUrl) + "&duration=14400";
             } else {
-                alert(data.message);
-                btn.innerText = "CONNECT NOW";
-                btn.disabled = false;
+                alert(data.message || "Saved, but Meraki AP not found.");
+                submitBtn.innerText = "CONNECT";
+                submitBtn.disabled = false;
             }
         })
         .catch(err => {
-            alert("Connection error. Check Meraki Walled Garden settings.");
-            btn.disabled = false;
-            btn.innerText = "CONNECT NOW";
+            alert("Error: Check Meraki Walled Garden settings.");
+            submitBtn.disabled = false;
+            submitBtn.innerText = "CONNECT";
         });
-    });
+    };
 </script>
 
 </body>
