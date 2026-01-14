@@ -32,10 +32,13 @@
         <input type="tel" id="mobile" placeholder="Mobile Number" required>
         <input type="email" id="email" placeholder="Email Address" required>
 
-        <div class="terms-container">
-            <input type="checkbox" id="terms">
-            <label for="terms">I agree to the Terms of Service. I understand that internet access is limited to 4 hours per day.</label>
-        </div>
+       <div class="terms-container">
+    <input type="checkbox" id="terms">
+    <label for="terms" style="color: #555;">
+        I agree to the <a href="terms.html" style="color: #1a73e8; text-decoration: underline;">Terms & Conditions</a> 
+        and understand that access is limited to 4 hours per day.
+    </label>
+</div>
 
         <button type="submit" id="submitBtn" disabled>CONNECT NOW</button>
     </form>
@@ -51,19 +54,27 @@
     const baseGrantUrl = urlParams.get('base_grant_url');
     const userContinueUrl = urlParams.get('user_continue_url') || "https://www.google.com";
 
-    const termsCb = document.getElementById('terms');
-    const btn = document.getElementById('submitBtn');
+const termsCb = document.getElementById('terms');
+const submitBtn = document.getElementById('submitBtn');
 
-    // 2. Enable/Disable button based on checkbox
-    termsCb.addEventListener('change', function() {
-        if (this.checked) {
-            btn.disabled = false;
-            btn.classList.add('active');
-        } else {
-            btn.disabled = true;
-            btn.classList.remove('active');
-        }
-    });
+// This function checks the checkbox and changes the button color
+function validateForm() {
+    if (termsCb.checked) {
+        submitBtn.disabled = false;
+        submitBtn.style.backgroundColor = "#1a73e8"; // Blue
+        submitBtn.classList.add('active');
+    } else {
+        submitBtn.disabled = true;
+        submitBtn.style.backgroundColor = "#ccc"; // Grey
+        submitBtn.classList.remove('active');
+    }
+}
+
+// Condition 1: Check when user clicks the box
+termsCb.addEventListener('change', validateForm);
+
+// Condition 2: Check when user comes BACK from the Terms page
+window.addEventListener('load', validateForm);
 
     // 3. Handle Form Submission
     document.getElementById('wifiForm').addEventListener('submit', function(e) {
