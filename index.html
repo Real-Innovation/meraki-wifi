@@ -1,24 +1,28 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guest WiFi Login</title>
     <style>
-        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; display: flex; justify-content: center; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #ccc; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: not-allowed; margin-top: 10px; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 380px; text-align: center; }
+        .logo { width: 140px; margin-bottom: 15px; }
+        input[type="text"], input[type="tel"], input[type="email"] { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .consent-section { text-align: left; margin: 15px 0; font-size: 13px; color: #444; line-height: 1.4; }
+        .checkbox-row { display: flex; align-items: flex-start; margin-bottom: 12px; }
+        .checkbox-row input { width: 20px; height: 20px; margin-right: 12px; margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+        button { width: 100%; padding: 14px; background: #ccc; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: not-allowed; transition: 0.3s; font-size: 16px; }
         button.active { background: #1a73e8; cursor: pointer; }
-        .terms { font-size: 12px; text-align: left; margin: 15px 0; display: flex; }
-        .terms input { width: 20px; margin-right: 10px; height: 20px; }
+        a { color: #1a73e8; text-decoration: underline; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <img src="BR-Image.jfif" style="width: 120px; margin-bottom: 10px;">
-    <h2>Free WiFi</h2>
-    <p>4 Hours Daily Access</p>
+    <img src="BR-Image.jfif" alt="Logo" class="logo">
+    <h2>Welcome to Free WiFi</h2>
+    <p style="font-size: 14px; color: #666;">Please complete the form to connect</p>
 
     <form id="wifiForm">
         <input type="text" id="fn" placeholder="First Name" required>
@@ -26,25 +30,35 @@
         <input type="tel" id="ph" placeholder="Mobile Number" required>
         <input type="email" id="em" placeholder="Email Address" required>
 
-        <div class="terms">
-            <input type="checkbox" id="termsBox">
-            <label for="termsBox">I agree to the <a href="terms.html">Terms & Conditions</a></label>
+        <div class="consent-section">
+            <div class="checkbox-row">
+                <input type="checkbox" id="marketingBox">
+                <label for="marketingBox">I would like to receive marketing communications on products, services, or events.</label>
+            </div>
+
+            <div class="checkbox-row">
+                <input type="checkbox" id="termsBox">
+                <label for="termsBox">
+                    I provide consent to Galadari Food and Beverage Company LLC to process my personal data in line with the 
+                    <a href="privacy.pdf" target="_blank">Privacy Notice</a> and 
+                    <a href="terms.pdf" target="_blank">Terms & Conditions</a>.
+                </label>
+            </div>
         </div>
 
-        <button type="submit" id="submitBtn" disabled>CONNECT</button>
+        <button type="submit" id="submitBtn" disabled>CONNECT NOW</button>
     </form>
 </div>
 
 <script>
-    // 1. Get Meraki Auth Details
     const params = new URLSearchParams(window.location.search);
     const baseGrantUrl = params.get('base_grant_url');
     const userContinueUrl = params.get('user_continue_url') || "https://www.google.com";
 
     const termsBox = document.getElementById('termsBox');
+    const marketingBox = document.getElementById('marketingBox');
     const submitBtn = document.getElementById('submitBtn');
 
-    // 2. Button Activation Logic
     function checkState() {
         if (termsBox.checked) {
             submitBtn.disabled = false;
@@ -54,41 +68,40 @@
             submitBtn.classList.remove('active');
         }
     }
+
     termsBox.addEventListener('change', checkState);
     window.addEventListener('load', checkState);
 
-    // 3. Form Submit & Internet Grant
     document.getElementById('wifiForm').onsubmit = function(e) {
         e.preventDefault();
-        submitBtn.innerText = "Connecting...";
+        submitBtn.innerText = "Authorizing...";
         submitBtn.disabled = true;
 
         const payload = {
             firstName: document.getElementById('fn').value,
             lastName: document.getElementById('ln').value,
             mobile: document.getElementById('ph').value,
-            email: document.getElementById('em').value
+            email: document.getElementById('em').value,
+            marketing: marketingBox.checked ? "Yes" : "No"
         };
 
-        // REPLACE THIS URL WITH YOUR GOOGLE DEPLOYMENT URL
-        const googleUrl = 'https://script.google.com/macros/s/AKfycbyYmP0XGWzU5I06-ZIjQZIxKHeE_Cd4A6iXUhPmfjyMQFl3PIFZWGS7AzSZC50WZ1si/exec';
+        // REPLACE WITH YOUR GOOGLE WEB APP URL
+        const googleUrl = 'YOUR_GOOGLE_SCRIPT_URL_HERE';
 
         fetch(googleUrl, { method: 'POST', body: JSON.stringify(payload) })
         .then(res => res.json())
         .then(data => {
             if (data.result === "success" && baseGrantUrl) {
-                // THE HANDSHAKE: This unlocks the internet for 4 hours
                 window.location.href = baseGrantUrl + "?continue_url=" + encodeURIComponent(userContinueUrl) + "&duration=14400";
             } else {
-                alert(data.message || "Saved, but Meraki AP not found.");
-                submitBtn.innerText = "CONNECT";
+                alert(data.message || "Connected (Dev Mode)");
+                submitBtn.innerText = "CONNECT NOW";
                 submitBtn.disabled = false;
             }
         })
         .catch(err => {
             alert("Error: Check Meraki Walled Garden settings.");
             submitBtn.disabled = false;
-            submitBtn.innerText = "CONNECT";
         });
     };
 </script>
