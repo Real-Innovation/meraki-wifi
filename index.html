@@ -23,7 +23,7 @@
 <div class="card">
     <img src="BR-Image.jfif" alt="Logo" class="logo">
     
-    <p class="instruction">Register to start your 4-hour session</p>
+    <p class="instruction">Register to start your 2-hour session</p>
 
     <form id="wifiForm">
         <input type="text" id="fn" placeholder="First Name" required>
@@ -52,7 +52,6 @@
 </div>
 
 <script>
-    // Capture Meraki redirection parameters
     const params = new URLSearchParams(window.location.search);
     const baseGrantUrl = params.get('base_grant_url');
     const userContinueUrl = params.get('user_continue_url') || "https://www.google.com";
@@ -60,7 +59,6 @@
     const termsBox = document.getElementById('termsBox');
     const submitBtn = document.getElementById('submitBtn');
 
-    // Enable button only when mandatory box is checked
     function validateForm() {
         if (termsBox.checked) {
             submitBtn.disabled = false;
@@ -87,7 +85,6 @@
             marketing: document.getElementById('marketingBox').checked ? "Yes" : "No"
         };
 
-        // !!! UPDATE THIS URL WITH YOUR NEW GOOGLE DEPLOYMENT URL !!!
         const googleUrl = 'PASTE_YOUR_GOOGLE_SCRIPT_URL_HERE';
 
         fetch(googleUrl, { method: 'POST', body: JSON.stringify(payload) })
@@ -95,10 +92,10 @@
         .then(data => {
             if (data.result === "success") {
                 if (baseGrantUrl) {
-                    // Redirect to Meraki to unlock internet
-                    window.location.href = baseGrantUrl + "?continue_url=" + encodeURIComponent(userContinueUrl) + "&duration=14400";
+                    // CHANGE 2: DURATION UPDATED TO 7200 SECONDS (2 HOURS)
+                    window.location.href = baseGrantUrl + "?continue_url=" + encodeURIComponent(userContinueUrl) + "&duration=7200";
                 } else {
-                    alert("Data saved! Meraki access would be granted if connected to the AP.");
+                    alert("Data saved! Meraki access would be granted for 2 hours.");
                     submitBtn.innerText = "CONNECTED";
                 }
             } else {
