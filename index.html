@@ -85,7 +85,7 @@
             marketing: document.getElementById('marketingBox').checked ? "Yes" : "No"
         };
 
-        const googleUrl = 'PASTE_YOUR_GOOGLE_SCRIPT_URL_HERE';
+        const googleUrl = 'https://script.google.com/macros/s/AKfycbyYmP0XGWzU5I06-ZIjQZIxKHeE_Cd4A6iXUhPmfjyMQFl3PIFZWGS7AzSZC50WZ1si/exec';
 
         fetch(googleUrl, { method: 'POST', body: JSON.stringify(payload) })
         .then(res => res.json())
